@@ -1,10 +1,29 @@
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
-import { View, Text, Dimensions, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Dimensions,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { Fontisto } from "@expo/vector-icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const API_KEY = "84b4ea4ed79af1c26abc634f992c64fd";
+// const API_KEY = "84b4ea4ed79af1c26abc634f992c64fd";
+const API_KEY = "784ab24ff2ed5d94d4288abed9e25d13";
+
+const icons = {
+  Clouds: "cloudy",
+  Clear: "day-sunny",
+  Atomosphere: "fog",
+  Snow: "snow",
+  Rain: "rains",
+  Drizzle: "rain",
+  Thunderstrorm: "lightning",
+};
 
 export default function App() {
   const [region, setRegion] = useState();
@@ -31,7 +50,7 @@ export default function App() {
       `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${API_KEY}&units=metric`
     );
     const json = await response.json();
-    console.log(json);
+    setDays(json.daily);
   };
 
   useEffect(() => {
@@ -39,38 +58,63 @@ export default function App() {
   }, []);
   return (
     <View style={styles.continer}>
-      <View style={styles.city}>
-        <Text style={styles.cityName}>
-          {region} {city}
-        </Text>
-      </View>
-      <ScrollView
-        contentContainerStyle={styles.weather}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-      >
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-      </ScrollView>
+      {ok ? (
+        <>
+          <View style={styles.city}>
+            <Text style={styles.cityName}>
+              {region} {city}
+            </Text>
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.weather}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+          >
+            {days.length === 0 ? (
+              <View style={styles.day}>
+                <ActivityIndicator
+                  color="white"
+                  style={{ marginTop: 10 }}
+                  size="large"
+                />
+              </View>
+            ) : (
+              days.map((day, index) => (
+                <View key={index} style={styles.day}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      width: "100%",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text style={styles.temp}>
+                      {parseFloat(day.temp.day).toFixed(1)}
+                    </Text>
+                    <Fontisto
+                      name={icons[day.weather[0].main]}
+                      size={80}
+                      color="white"
+                      style={{}}
+                    />
+                  </View>
+
+                  <Text style={styles.description}>{day.weather[0].main}</Text>
+                  <Text style={styles.tinyText}>
+                    {day.weather[0].description}
+                  </Text>
+                </View>
+              ))
+            )}
+          </ScrollView>
+        </>
+      ) : (
+        <>
+          <Text>위치 정보를 허용해야 사용할 수 있습니다.</Text>
+        </>
+      )}
     </View>
   );
 }
@@ -93,16 +137,20 @@ const styles = StyleSheet.create({
   },
   weather: {},
   day: {
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
     width: SCREEN_WIDTH,
+    padding: 20,
   },
   temp: {
-    marginTop: 50,
-    fontSize: 138,
+    fontSize: 108,
     fontWeight: "700",
   },
   description: {
     marginTop: -20,
     fontSize: 40,
+  },
+  tinyText: {
+    fontSize: 20,
   },
 });
